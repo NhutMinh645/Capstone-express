@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique @db.VarChar(191)
+  password  String    @db.VarChar(191)
+  fullName  String?   @db.VarChar(191)
+  age       Int?
+  avatar    String?   @db.VarChar(500)
+  images    Image[]
+  comments  Comment[]
+  saved     SavedImage[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Image {
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(191)
+  url         String       @db.VarChar(500)
+  description String?      @db.VarChar(1000)
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  comments    Comment[]
+  savedBy     SavedImage[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  imageId   Int
+  content   String   @db.VarChar(1000)
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  image Image @relation(fields: [imageId], references: [id])
+
+  @@index([imageId])
+  @@index([userId])
+}
+
+model SavedImage {
+  userId  Int
+  imageId Int
+  savedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  image Image @relation(fields: [imageId], references: [id])
+
+  @@id([userId, imageId])
+  @@index([imageId])
+}
